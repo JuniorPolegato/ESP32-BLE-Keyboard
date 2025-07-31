@@ -1,17 +1,22 @@
 #include "BleKeyboard.h"
 
 #if defined(USE_NIMBLE)
+
 #include <NimBLEDevice.h>
 #include <NimBLEServer.h>
 #include <NimBLEUtils.h>
 #include <NimBLEHIDDevice.h>
-#else
+
+#else // USE_NIMBLE
+
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include "BLE2902.h"
 #include "BLEHIDDevice.h"
+
 #endif // USE_NIMBLE
+
 #include "HIDTypes.h"
 #include <driver/adc.h>
 #include "sdkconfig.h"
@@ -113,6 +118,11 @@ void BleKeyboard::begin(void)
   BLEServer* pServer = BLEDevice::createServer();
   pServer->setCallbacks(this);
 
+#if defined(USE_NIMBLE)
+  // Set server auto-restart advertise on
+  pServer->advertiseOnDisconnect(true);
+#endif  // USE_NIMBLE
+
   hid = new BLEHIDDevice(pServer);
 
 #if defined(USE_NIMBLE)
@@ -127,6 +137,8 @@ void BleKeyboard::begin(void)
 
   hid->setPnp(0x02, vid, pid, version);
   hid->setHidInfo(0x00, 0x01);
+
+  NimBLEDevice::setSecurityAuth(true, true, true);
 
 #else  // USE_NIMBLE
 
@@ -172,6 +184,7 @@ void BleKeyboard::begin(void)
 
 #if defined(USE_NIMBLE)
 
+  advertising->setName(deviceName);
   advertising->addServiceUUID(hid->getHidService()->getUUID());
   advertising->enableScanResponse(false);
 
