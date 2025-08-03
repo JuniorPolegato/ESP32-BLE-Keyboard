@@ -134,11 +134,12 @@ void BleKeyboard::begin(void)
   outputKeyboard->setCallbacks(this);
 
   hid->setManufacturer(deviceManufacturer);
-
   hid->setPnp(0x02, vid, pid, version);
   hid->setHidInfo(0x00, 0x01);
 
-  NimBLEDevice::setSecurityAuth(true, true, true);
+  BLEDevice::setSecurityAuth(true, true, true);
+
+  hid->setReportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
 
 #else  // USE_NIMBLE
 
@@ -153,30 +154,16 @@ void BleKeyboard::begin(void)
   hid->pnp(0x02, vid, pid, version);
   hid->hidInfo(0x00, 0x01);
 
-#endif  // USE_NIMBLE
-
-#if defined(USE_NIMBLE)
-
-  BLEDevice::setSecurityAuth(true, true, true);
-
-#else // USE_NIMBLE
-
   BLESecurity* pSecurity = new BLESecurity();
+  pSecurity->setStaticPIN(112233);  // <--- It has to be set before the lines below as suggested by the setStaticPIN() definition comments
+  pSecurity->setCapability(ESP_IO_CAP_NONE);
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_MITM_BOND);
 
-#endif // USE_NIMBLE
-
-#if defined(USE_NIMBLE)
-
-  hid->setReportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
-
-#else // USE_NIMBLE
-
   hid->reportMap((uint8_t*)_hidReportDescriptor, sizeof(_hidReportDescriptor));
+
+#endif  // USE_NIMBLE
+
   hid->startServices();
-
-#endif // USE_NIMBLE
-
   onStarted(pServer);
 
   advertising = pServer->getAdvertising();
