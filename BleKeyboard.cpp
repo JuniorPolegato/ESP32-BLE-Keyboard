@@ -155,7 +155,7 @@ void BleKeyboard::begin(void)
   hid->hidInfo(0x00, 0x01);
 
   BLESecurity* pSecurity = new BLESecurity();
-  pSecurity->setStaticPIN(112233);  // <--- It has to be set before the lines below as suggested by the setStaticPIN() definition comments
+  pSecurity->setPassKey(false);  // <--- It has to be set before the lines below as suggested by the setStaticPIN() definition comments
   pSecurity->setCapability(ESP_IO_CAP_NONE);
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_MITM_BOND);
 
